@@ -160,7 +160,9 @@ def verify_otp():
 # ---------------- LOGIN ----------------
 @auth_bp.route("/api/login", methods=["POST"])
 def login():
-    data = request.json
+    data = request.get_json() or {}
+    if not data.get("email") or not data.get("password"):
+        return jsonify({"msg": "Email and password required"}), 400
     user = User.query.filter_by(email=data["email"]).first()
 
     if not user:
