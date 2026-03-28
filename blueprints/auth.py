@@ -55,7 +55,10 @@ Thanks ❤️
 # ---------------- DIRECT REGISTER (no OTP) ----------------
 @auth_bp.route("/api/register", methods=["POST"])
 def register():
-    data = request.get_json() or {}
+    print("REGISTER RAW:", request.data)
+    print("REGISTER CONTENT-TYPE:", request.content_type)
+    data = request.get_json(force=True, silent=True) or {}
+    print("REGISTER JSON:", data)
     name = data.get("name")
     email = data.get("email")
     place = data.get("place")
@@ -160,7 +163,10 @@ def verify_otp():
 # ---------------- LOGIN ----------------
 @auth_bp.route("/api/login", methods=["POST"])
 def login():
-    data = request.get_json() or {}
+    print("LOGIN RAW:", request.data)
+    print("LOGIN CONTENT-TYPE:", request.content_type)
+    data = request.get_json(force=True, silent=True) or {}
+    print("LOGIN JSON:", data)
     if not data.get("email") or not data.get("password"):
         return jsonify({"msg": "Email and password required"}), 400
     user = User.query.filter_by(email=data["email"]).first()
