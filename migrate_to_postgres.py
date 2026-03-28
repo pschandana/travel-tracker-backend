@@ -18,7 +18,7 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 PG_URL = sys.argv[1]
-SQLITE_PATH = "app.db"
+SQLITE_PATH = "instance/app.db"
 
 print(f"Connecting to SQLite: {SQLITE_PATH}")
 sqlite_conn = sqlite3.connect(SQLITE_PATH)
@@ -132,7 +132,7 @@ pg_conn.commit()
 print("Tables created.")
 
 # ── Migrate users ─────────────────────────────────────────────────────────────
-sc.execute("SELECT * FROM user")
+sc.execute('SELECT * FROM "user"')
 users = sc.fetchall()
 print(f"Migrating {len(users)} users...")
 for u in users:
@@ -185,8 +185,19 @@ for t in trips:
     ))
 
 # ── Reset sequences so new inserts don't conflict ─────────────────────────────
-for table in ('"user"', 'analyst', 'trip', 'audit_log', 'consent_record'):
-    pc.execute(f"SELECT setval(pg_get_serial_sequence({table}, 'id'), COALESCE(MAX(id),1)) FROM {table}")
+seq_map = {
+    '"user"': 'user_id_seq',
+    'analyst': 'analyst_id_seq',
+    'trip': 'trip_id_seq',
+    'audit_log': 'audit_log_id_seq',
+    'consent_record': 'consent_record_id_seq',
+}
+for table, seq in seq_map.items():
+    try:
+        pc.execute(f"SELECT setval('{seq}', COALESCE((SELECT MAX(id) FROM {table}), 1))")
+    except Exception as e:
+        print(f"  Sequence reset skipped for {table}: {e}")
+        pg_conn.rollback()
 
 pg_conn.commit()
 sqlite_conn.close()
