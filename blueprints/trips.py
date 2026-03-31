@@ -446,7 +446,7 @@ def weekly_analytics():
         if t.duration:
             total_time += t.duration
         if t.mode:
-            mode_count[t.mode] += 1
+            mode_count[t.mode.strip().title()] += 1
 
     # Mode %
     mode_percent = {}
@@ -537,7 +537,8 @@ def range_analytics():
         total_cost += t.cost or 0
 
         if t.mode:
-            mode_count[t.mode] = mode_count.get(t.mode, 0) + 1
+            normalized = t.mode.strip().title()
+            mode_count[normalized] = mode_count.get(normalized, 0) + 1
 
         if t.mode == "Car":
             carbon += (t.distance or 0) * 0.21
